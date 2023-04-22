@@ -1,2 +1,2 @@
-# ecen5823-f22-assignments
-Starter code based on Gecko SDK 3.2.3
+# LPEDT PRoject
+Repository for interfacing MAX30101 heart rate and SpO2 sensor with EFR32 Blue Gecko board
