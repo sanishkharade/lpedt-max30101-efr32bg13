@@ -98,7 +98,7 @@ bool checkForBeat(int32_t sample)
   IR_AC_Signal_Previous = IR_AC_Signal_Current;
 
   //This is good to view for debugging
-  LOG_INFO("Signal_Current: %d", IR_AC_Signal_Current);
+//  LOG_INFO("Signal_Current: %d", IR_AC_Signal_Current);
 
   //  Process next data sample
   IR_Average_Estimated = averageDCEstimator(&ir_avg_reg, sample);
@@ -143,7 +143,7 @@ bool checkForBeat(int32_t sample)
     IR_AC_Signal_min = IR_AC_Signal_Current;
   }
 
-  return(beatDetected);
+  return (beatDetected);
 }
 
 //  Average DC Estimator
@@ -168,11 +168,32 @@ int16_t lowPassFIRFilter(int16_t din)
   offset++;
   offset %= 32; //Wrap condition
 
-  return(z >> 15);
+  return (z >> 15);
 }
 
 //  Integer multiplier
 int32_t mul16(int16_t x, int16_t y)
 {
-  return((long)x * (long)y);
+  return ((long)x * (long)y);
+}
+
+// not used
+long meanDiff(int M) {
+  #define LM_SIZE 15
+  static int LM[LM_SIZE];      // LastMeasurements
+  static uint8_t index = 0;
+  static long sum = 0;
+  static uint8_t count = 0;
+  long avg = 0;
+
+  // keep sum updated to improve speed.
+  sum -= LM[index];
+  LM[index] = M;
+  sum += LM[index];
+  index++;
+  index = index % LM_SIZE;
+  if (count < LM_SIZE) count++;
+
+  avg = sum / count;
+  return avg - M;
 }

@@ -57,7 +57,7 @@
 //
 //#endif
 
-#define I2C_BUFFER_LENGTH 32
+#define I2C_BUFFER_LENGTH 64
 //
 //class MAX30105 {
 // public:
@@ -67,7 +67,7 @@
 
     bool MAX30105_begin();
 //
-//  uint32_t getRed(void); //Returns immediate red value
+    uint32_t MAX30105_getRed(void); //Returns immediate red value
     uint32_t MAX30105_getIR(void); //Returns immediate IR value
 //  uint32_t getGreen(void); //Returns immediate green value
     bool MAX30105_safeCheck(uint8_t maxTimeToCheck); //Given a max amount of time, check for new data
@@ -118,8 +118,8 @@
 //  //FIFO Reading
   uint16_t check(void); //Checks for new data and fills FIFO
 
-//  uint8_t available(void); //Tells caller how many new samples are available (head - tail)
-//  void nextSample(void); //Advances the tail of the sense array
+  uint8_t MAX30105_available(void); //Tells caller how many new samples are available (head - tail)
+  void MAX30105_nextSample(void); //Advances the tail of the sense array
 //  uint32_t getFIFORed(void); //Returns the FIFO sample pointed to by tail
 //  uint32_t getFIFOIR(void); //Returns the FIFO sample pointed to by tail
 //  uint32_t getFIFOGreen(void); //Returns the FIFO sample pointed to by tail

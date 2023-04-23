@@ -128,7 +128,7 @@ static const uint8_t MAX30105_ADCRANGE_4096 =   0x20;
 //
 static const uint8_t MAX30105_SAMPLERATE_MASK = 0xE3;
 //static const uint8_t MAX30105_SAMPLERATE_50 =   0x00;
-//static const uint8_t MAX30105_SAMPLERATE_100 =  0x04;
+static const uint8_t MAX30105_SAMPLERATE_100 =  0x04;
 //static const uint8_t MAX30105_SAMPLERATE_200 =  0x08;
 static const uint8_t MAX30105_SAMPLERATE_400 =  0x0C;
 //static const uint8_t MAX30105_SAMPLERATE_800 =  0x10;
@@ -597,24 +597,24 @@ void MAX30105_setup(uint8_t powerLevel, uint8_t sampleAverage, uint8_t ledMode, 
 //// Data Collection
 ////
 //
-////Tell caller how many samples are available
-//uint8_t MAX30105::available(void)
-//{
-//  int8_t numberOfSamples = sense.head - sense.tail;
-//  if (numberOfSamples < 0) numberOfSamples += STORAGE_SIZE;
-//
-//  return (numberOfSamples);
-//}
+//Tell caller how many samples are available
+uint8_t MAX30105_available(void)
+{
+  int8_t numberOfSamples = sense.head - sense.tail;
+  if (numberOfSamples < 0) numberOfSamples += STORAGE_SIZE;
+
+  return (numberOfSamples);
+}
 //
 ////Report the most recent red value
-//uint32_t MAX30105::getRed(void)
-//{
-//  //Check the sensor for new data for 250ms
-//  if(safeCheck(250))
-//    return (sense.red[sense.head]);
-//  else
-//    return(0); //Sensor failed to find new data
-//}
+uint32_t MAX30105_getRed(void)
+{
+  //Check the sensor for new data for 250ms
+  if(MAX30105_safeCheck(250))
+    return (sense.red[sense.head]);
+  else
+    return(0); //Sensor failed to find new data
+}
 //
 //Report the most recent IR value
 uint32_t MAX30105_getIR(void)
@@ -654,15 +654,15 @@ uint32_t MAX30105_getIR(void)
 //  return (sense.green[sense.tail]);
 //}
 //
-////Advance the tail
-//void MAX30105::nextSample(void)
-//{
-//  if(available()) //Only advance the tail if new data is available
-//  {
-//    sense.tail++;
-//    sense.tail %= STORAGE_SIZE; //Wrap condition
-//  }
-//}
+//Advance the tail
+void MAX30105_nextSample(void)
+{
+  if(MAX30105_available()) //Only advance the tail if new data is available
+  {
+    sense.tail++;
+    sense.tail %= STORAGE_SIZE; //Wrap condition
+  }
+}
 //
 //Polls the sensor for new data
 //Call regularly
@@ -695,7 +695,8 @@ uint16_t check(void)
 
     //Get ready to read a burst of data from the FIFO register
 //    _i2cPort->beginTransmission(MAX30105_ADDRESS);
-//    _i2cPort->write(MAX30105_FIFODATA);
+//    _i2cPort_write(MAX30105_FIFODATA);
+//    _i2cPort_read();
 //    _i2cPort->endTransmission();
 
     //We may need to read as many as 288 bytes so we read in blocks no larger than I2C_BUFFER_LENGTH
@@ -729,9 +730,14 @@ uint16_t check(void)
 
         //Burst read three bytes - RED
         temp[3] = 0;
-        temp[2] = readRegister8(_i2caddr, MAX30105_FIFODATA);
-        temp[1] = readRegister8(_i2caddr, MAX30105_FIFODATA);
-        temp[0] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+//        temp[2] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+//        temp[1] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+//        temp[0] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+        uint8_t t[3];
+        max30101_i2c_burst_read(MAX30105_FIFODATA, t, 3);
+        temp[2] = t[0];
+        temp[1] = t[1];
+        temp[0] = t[2];
 //        temp[2] = _i2cPort_read();
 //        temp[1] = _i2cPort_read();
 //        temp[0] = _i2cPort_read();
@@ -747,9 +753,13 @@ uint16_t check(void)
         {
           //Burst read three more bytes - IR
           temp[3] = 0;
-          temp[2] = readRegister8(_i2caddr, MAX30105_FIFODATA);
-          temp[1] = readRegister8(_i2caddr, MAX30105_FIFODATA);
-          temp[0] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+//          temp[2] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+//          temp[1] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+//          temp[0] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+          max30101_i2c_burst_read(MAX30105_FIFODATA, t, 3);
+          temp[2] = t[0];
+          temp[1] = t[1];
+          temp[0] = t[2];
 //          temp[2] = _i2cPort_read();
 //          temp[1] = _i2cPort_read();
 //          temp[0] = _i2cPort_read();
@@ -766,12 +776,16 @@ uint16_t check(void)
         {
           //Burst read three more bytes - Green
           temp[3] = 0;
-          temp[2] = readRegister8(_i2caddr, MAX30105_FIFODATA);
-          temp[1] = readRegister8(_i2caddr, MAX30105_FIFODATA);
-          temp[0] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+//          temp[2] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+//          temp[1] = readRegister8(_i2caddr, MAX30105_FIFODATA);
+//          temp[0] = readRegister8(_i2caddr, MAX30105_FIFODATA);
 //          temp[2] = _i2cPort_read();
 //          temp[1] = _i2cPort_read();
 //          temp[0] = _i2cPort_read();
+          max30101_i2c_burst_read(MAX30105_FIFODATA, t, 3);
+          temp[2] = t[0];
+          temp[1] = t[1];
+          temp[0] = t[2];
 
           //Convert array to long
           memcpy(&tempLong, temp, sizeof(tempLong));
@@ -797,7 +811,7 @@ uint16_t check(void)
 bool MAX30105_safeCheck(uint8_t maxTimeToCheck)
 {
   uint32_t markTime = millis();
-  LOG_INFO("Here\r");
+//  LOG_INFO("Here\r");
   while(1)
   {
   if(millis() - markTime > maxTimeToCheck)
@@ -858,6 +872,10 @@ uint8_t _i2cPort_read()
   return max30101_i2c_read();
 }
 
+void _i2cPort_write(uint8_t reg)
+{
+  max30101_i2c_write(reg);
+}
 uint32_t millis(){
   return letimerMilliseconds();
 }

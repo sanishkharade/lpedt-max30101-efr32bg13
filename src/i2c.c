@@ -66,7 +66,26 @@ uint16_t read_data;
 //
 //      return (uint32_t)1;
 //}
+void max30101_i2c_write(uint8_t reg)
+{
+//  uint8_t read_data;
+  transferSequence.flags = I2C_FLAG_WRITE, // Write command
+  transferSequence.addr = (MAX30105_ADDRESS<<1), // Slave address needs to be left shift by one bit
+  transferSequence.buf[0].data = &reg, // Passing the pointer that has the command data stored
+  transferSequence.buf[0].len = sizeof(reg); // Length of the command data
 
+//  i2c_init();
+  I2C_TransferReturn_TypeDef trans_ret = I2CSPM_Transfer(I2C0, &transferSequence);
+
+  // Checking if the transfer is done or no.
+  if(trans_ret != i2cTransferDone)
+      {
+        LOG_ERROR("I2C Write error: %d", trans_ret); // If transfer is not done then we will log error message
+//        createEventSystemError();
+      }
+
+//  return read_data;
+}
 uint8_t max30101_i2c_read()
 {
 
@@ -76,9 +95,9 @@ uint8_t max30101_i2c_read()
   transferSequence.buf[0].data = &read_data, // Passing the pointer that has the command data stored
   transferSequence.buf[0].len = sizeof(read_data); // Length of the command data
 
-
+//  i2c_init();
   I2C_TransferReturn_TypeDef trans_ret = I2CSPM_Transfer(I2C0, &transferSequence);
-//  LOG_INFO("max30101_i2c_read: %d\r", trans_ret);
+
   // Checking if the transfer is done or no.
   if(trans_ret != i2cTransferDone)
       {
@@ -108,6 +127,65 @@ uint8_t max30101_i2c_read()
 
 }
 
+uint8_t max30101_i2c_burst_read(uint8_t reg, uint8_t *data, unsigned int len)
+{
+
+//  uint8_t read_data;
+//  transferSequence.flags = I2C_FLAG_READ, // Write command
+//  transferSequence.addr = (MAX30105_ADDRESS<<1), // Slave address needs to be left shift by one bit
+//  transferSequence.buf[0].data = &read_data, // Passing the pointer that has the command data stored
+//  transferSequence.buf[0].len = sizeof(read_data); // Length of the command data
+//
+//
+//  I2C_TransferReturn_TypeDef trans_ret = I2CSPM_Transfer(I2C0, &transferSequence);
+//
+//  // Checking if the transfer is done or no.
+//  if(trans_ret != i2cTransferDone)
+//      {
+//        LOG_ERROR("I2C Write error: %d", trans_ret); // If transfer is not done then we will log error message
+////        createEventSystemError();
+//      }
+//
+//  return read_data;
+
+
+  //uint8_t cmd_data[2];
+  uint8_t cmd_data;
+  //uint8_t no_data[1];
+  I2C_TransferReturn_TypeDef transferStatus;
+
+//  i2c_init();
+
+  cmd_data = reg;
+
+  // Sequence to send over I2C
+  transferSequence.addr = MAX30105_ADDRESS << 1;
+  transferSequence.flags = I2C_FLAG_WRITE_READ;
+
+  transferSequence.buf[0].data = &cmd_data;
+  transferSequence.buf[0].len = sizeof(cmd_data);
+
+  transferSequence.buf[1].data = data;
+  transferSequence.buf[1].len = len;
+
+  // Enable NVIC for I2C0
+  //NVIC_EnableIRQ(I2C0_IRQn);
+
+  //transferStatus = I2C_TransferInit(I2C0, &transferSequence);
+  transferStatus = I2CSPM_Transfer(I2C0, &transferSequence);
+  if (transferStatus < 0) {
+      LOG_ERROR("i2c_read_data_block_apds9960 failed: reg=0x%x, data=0x%x, len=%d, error = 0x%x\n\r", cmd_data, *data, len, transferStatus);
+      //*data = 0xFF;
+//      return (uint32_t)transferStatus;
+      return -1;
+
+  }
+
+//  return (uint32_t)1;
+  return (int)len;
+
+}
+
 uint8_t max30101_i2c_read_reg(uint8_t reg)
 {
 
@@ -120,6 +198,7 @@ uint8_t max30101_i2c_read_reg(uint8_t reg)
 //  transferSequence.buf[1].len = nbytes_read_data;
   transferSequence.buf[1].len = 1;
 
+//  i2c_init();
   // This will initialize the write command on to the bus
   I2C_TransferReturn_TypeDef trans_ret = I2CSPM_Transfer(I2C0,&transferSequence);
 //  LOG_INFO("i2c_Read_blocking: %d\r", trans_ret);
@@ -146,6 +225,7 @@ void max30101_i2c_write_reg(uint8_t reg, uint8_t value)
 //  transferSequence.buf[1].len = nbytes_write_data;
   transferSequence.buf[1].len = 1;
 
+//  i2c_init();
   // This will initialize the write command on to the bus
   I2C_TransferReturn_TypeDef trans_ret = I2CSPM_Transfer(I2C0,&transferSequence);
 //  LOG_INFO("i2c_Write_Write_blocking: %d\r", trans_ret);
